@@ -1,0 +1,170 @@
+# compile with dot -ogpus_prod.svg -Tsvg D_gpus_prod.dot
+digraph G {
+  label="Modelling with 1 quant\n\
+  using multiple machines with GPUs\n\
+  with production-like infra";
+  graph [
+    fontname="Handlee";
+  ];
+  node [
+    fontname="Handlee";
+  ];
+  edge [
+    fontname="Handlee";
+  ];
+  // bgcolor=transparent;
+  raw_hist1 [
+    label="Raw Historical Data\n(CME)";
+    shape="septagon";
+  ];
+  raw_hist2 [
+    label="Raw Historical Data\n(BTec, ...)";
+    shape="septagon";
+  ];
+  github [
+    label="github";
+    shape="septagon";
+  ];
+  subgraph cluster_infio {
+    label="inf.io";
+    style=dashed;
+    norm_hist_data1 [
+      label="Normalized Historical Data";
+      shape="cylinder";
+    ];
+    norm_hist_data2 [
+      label="Normalized Historical Data";
+      shape="cylinder";
+    ];
+    norm_hist [
+      label="Normalized and Intervalized History";
+    ];
+  }
+  subgraph {
+    rank=same;
+    io_lb [
+      label="storage load balancer";
+    ];
+    feature_lb [
+      label="feature load balancer";
+    ];
+    ml_lb [
+      label="ML load balancer";
+    ];
+    admin_service [
+      label="Admin service";
+    ];
+  }
+  disk [
+    label="network storage";
+    shape="cylinder";
+  ];
+  subgraph cluster_server {
+    label="Server 1 with GPU";
+    fontcolor="yellow3";
+    style=dashed;
+    admin [
+      label="admin (deployment)\n\ (via sshd?)";
+    ];
+    subgraph {
+      rank=same;
+      io [
+        label="storage server";
+      ];
+      stock_feature [
+        label="(parameterized) stock feature extraction\n\
+      using GPU accelerated code";
+      ];
+      stock_ML [
+        label="Training, testing, evaluation of\n\
+      (parameterized) stock ML models\n\
+      using GPU accelerated code";
+      ];
+    }
+  }
+  subgraph cluster_machines {
+    style=invis;
+    machine2 [
+      label="Server 2 with GPU";
+      fontcolor="green3";
+      style=dashed;
+      shape=box3d;
+    ];
+    machine3 [
+      label="Server 3 with GPU";
+      fontcolor="green3";
+      style=dashed;
+      shape=box3d;
+    ];
+    machine4 [
+      label="More servers ...";
+      fontcolor="green3";
+      style=dashed;
+      shape=box3d;
+    ];
+    norm_hist -> machine2 -> machine3 -> machine4 [
+      style=invis;
+    ];
+  }
+  raw_hist1 -> norm_hist_data1 -> norm_hist;
+  raw_hist2 -> norm_hist_data2 -> norm_hist;
+  norm_hist -> stock_feature [
+    dir="back";
+    color=blue;
+  ];
+  { stock_feature stock_ML } -> io -> disk [
+    weight=1000;
+  ];
+  disk -> io -> { stock_feature stock_ML };
+  github -> admin [
+    dir="back";
+    color=blue;
+  ];
+  io -> io_lb;
+  stock_feature -> feature_lb;
+  stock_ML -> ml_lb;
+  admin -> admin_service;
+  subgraph cluster_client {
+    label="Client python session";
+    feature [
+      shape=box;
+    ];
+    ml [
+      shape=box;
+    ];
+    push [
+      label="push code to server\n\ and github";
+      shape=box;
+    ];
+  }
+  { io_lb feature_lb ml_lb } -> feature [
+    color=blue;
+    dir="back";
+  ];
+  { feature ml } -> feature;
+  { feature } -> ml;
+  push -> { github admin_service };
+  subgraph cluster_legend {
+    label="legend";
+    style=dotted;
+    fontsize=30;
+    Database [
+      shape="cylinder";
+    ];
+    Cloud [
+      shape="septagon";
+    ];
+    Server;
+    Code [
+      shape="box";
+    ];
+    Machine [
+      shape=box3d;
+      style=dashed;
+    ];
+    Database -> Cloud -> Server -> Code -> Machine [
+      style=invis;
+    ];
+  }
+}
+# D_gpus_prod.dot
