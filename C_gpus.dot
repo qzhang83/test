@@ -1,0 +1,115 @@
+# compile with dot -ogpus.svg -Tsvg C_gpus.dot
+digraph G {
+  label="Modelling with 1 quant using multiple machines with GPUs";
+  graph [
+    fontname="Handlee";
+  ];
+  node [
+    fontname="Handlee";
+  ];
+  edge [
+    fontname="Handlee";
+  ];
+  // bgcolor=transparent;
+  raw_hist1 [
+    label="Raw Historical Data\n(CME)";
+    shape="septagon";
+  ];
+  raw_hist2 [
+    label="Raw Historical Data\n(BTec, ...)";
+    shape="septagon";
+  ];
+  subgraph cluster_infio {
+    label="inf.io";
+    style=dashed;
+    norm_hist_data1 [
+      label="Normalized Historical Data";
+      shape="cylinder";
+    ];
+    norm_hist_data2 [
+      label="Normalized Historical Data";
+      shape="cylinder";
+    ];
+    norm_hist [
+      label="Normalized and Intervalized History";
+    ];
+  }
+  subgraph cluster_client {
+    label=<
+      Client python session<br />
+      on machine <font color="green3">1 </font>with GPU
+    >;
+    style=dashed;
+    feature [
+      label="Feature extraction using GPU accelerated code";
+      shape="box";
+    ];
+    ML_training [
+      label="ML Training using GPU accelerated code";
+      shape="box";
+    ];
+    user_disk [
+      label="local storage";
+      shape="cylinder";
+    ];
+    ML_testing [
+      label="ML testing";
+      shape="box";
+    ];
+  }
+  subgraph cluster_machines {
+    style=invis;
+    machine2 [
+      label="Client python session\non machine 2 with GPU";
+      fontcolor="green3";
+      style=dashed;
+      shape=box3d;
+    ];
+    machine3 [
+      label="Client python session\non machine 3 with GPU";
+      fontcolor="green3";
+      style=dashed;
+      shape=box3d;
+    ];
+    machine4 [
+      label="More machines ...";
+      fontcolor="green3";
+      style=dashed;
+      shape=box3d;
+    ];
+    norm_hist -> machine2 -> machine3 -> machine4 [
+      style=invis;
+    ];
+  }
+  raw_hist1 -> norm_hist_data1 -> norm_hist;
+  raw_hist2 -> norm_hist_data2 -> norm_hist;
+  norm_hist -> feature [
+    dir="back";
+    color=blue;
+  ];
+  feature -> ML_training -> { ML_testing user_disk };
+  ML_training -> feature -> user_disk;
+  subgraph cluster_legend {
+    label="legend";
+    style=dotted;
+    fontsize=30;
+    Database [
+      shape="cylinder";
+    ];
+    Cloud [
+      shape="septagon";
+    ];
+    Server;
+    Code [
+      shape="box";
+    ];
+    Machine [
+      shape=box3d;
+      style=dashed;
+    ];
+    Database -> Cloud -> Server -> Code -> Machine [
+      style=invis;
+    ];
+  }
+}
+# C_gpus.dot
